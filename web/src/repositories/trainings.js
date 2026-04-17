@@ -7,20 +7,22 @@ import HourUpdate from "./clients/trainer/src/model/HourUpdate";
 import {formatDate} from "../date";
 import PostTraining from "./clients/trainings/src/model/PostTraining";
 
-const serverSettings = {
-    hostname: window.location.hostname,
-};
 export let trainingsClient = new TrainingsApiClient()
-trainingsClient.basePath = trainingsClient.getBasePathFromSettings(0, serverSettings);
 let trainingsAPI = new TrainingsDefaultApi(trainingsClient)
 
 export let trainerClient = new TrainerApiClient()
-trainerClient.basePath = trainerClient.getBasePathFromSettings(0, serverSettings);
 let trainerAPI = new TrainerDefaultApi(trainerClient)
 
 if (process.env.NODE_ENV === 'development') {
-    trainingsClient.basePath = "http://localhost:3001/api"
-    trainerClient.basePath = "http://localhost:3000/api"
+    // In development, use relative paths so vue devServer proxy handles routing
+    trainingsClient.basePath = "/api"
+    trainerClient.basePath = "/api"
+} else {
+    const serverSettings = {
+        hostname: window.location.hostname,
+    };
+    trainingsClient.basePath = trainingsClient.getBasePathFromSettings(0, serverSettings);
+    trainerClient.basePath = trainerClient.getBasePathFromSettings(0, serverSettings);
 }
 
 export function getSchedule(dateFrom, dateTo, callback) {

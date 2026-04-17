@@ -8,15 +8,17 @@ import {Auth, setApiClientsAuth} from "./auth";
 export const Trainer = 'trainer';
 export const Attendee = 'attendee';
 
-const serverSettings = {
-  hostname: window.location.hostname,
-};
 export let usersClient = new UsersApiClient()
-usersClient.basePath = usersClient.getBasePathFromSettings(0, serverSettings);
 let usersAPI = new UsersDefaultApi(usersClient)
 
 if (process.env.NODE_ENV === 'development') {
-    usersClient.basePath = "http://localhost:3002/api"
+    // In development, use relative paths so vue devServer proxy handles routing
+    usersClient.basePath = "/api"
+} else {
+    const serverSettings = {
+        hostname: window.location.hostname,
+    };
+    usersClient.basePath = usersClient.getBasePathFromSettings(0, serverSettings);
 }
 
 export function getUserRole() {
