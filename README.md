@@ -26,6 +26,26 @@ No application is perfect from the beginning. With over a dozen coming articles,
 
 The example application is available at [https://threedotslabs-wildworkouts.web.app/](https://threedotslabs-wildworkouts.web.app/).
 
+### Code Generation
+
+The project uses `//go:generate` directives to generate OpenAPI types/servers and gRPC code. To regenerate all code:
+
+```bash
+# Install required tools first (one-time setup)
+go install github.com/deepmap/oapi-codegen/cmd/oapi-codegen@v1.3.6
+
+# Generate all code (run from each module directory)
+cd internal/trainer && go generate ./... && cd -
+cd internal/trainings && go generate ./... && cd -
+cd internal/users && go generate ./... && cd -
+cd internal/common && go generate ./... && cd -
+
+# Or simply use make
+make generate
+```
+
+You can also view all available make targets with `make help`.
+
 ### Running locally
 
 ```go
@@ -75,6 +95,35 @@ Congratulations! Your project should be available at: https://[your-project].web
 If it's not, check if the build finished successfully: https://console.cloud.google.com/cloud-build/builds?project=[your-project]
 
 If you need help, feel free to contact us at https://threedots.tech
+```
+
+### Troubleshooting
+
+#### 1. `oapi-codegen: Command not found`
+
+The project requires `oapi-codegen` v1.3.6 to generate OpenAPI code. Install it with:
+
+```bash
+go install github.com/deepmap/oapi-codegen/cmd/oapi-codegen@v1.3.6
+```
+
+Make sure `$GOPATH/bin` is in your `PATH`:
+
+```bash
+export PATH=$PATH:$(go env GOPATH)/bin
+```
+
+You can add the above line to your `~/.bashrc` or `~/.zshrc` to make it permanent.
+
+#### 2. `go.mod` outdated (`updates to go.mod needed`)
+
+If you see errors like `updates to go.mod needed; to update it: go mod tidy`, run `go mod tidy` for each sub-module:
+
+```bash
+cd internal/common && go mod tidy && cd -
+cd internal/trainer && go mod tidy && cd -
+cd internal/trainings && go mod tidy && cd -
+cd internal/users && go mod tidy && cd -
 ```
 
 ### Screenshots

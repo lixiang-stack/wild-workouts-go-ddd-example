@@ -1,19 +1,19 @@
-.PHONY: openapi
-openapi: openapi_http openapi_js
+.PHONY: help
+help: ## Show available targets
+	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  %-15s %s\n", $$1, $$2}'
 
-.PHONY: openapi_http
-openapi_http:
-	oapi-codegen -generate types -o internal/trainings/openapi_types.gen.go -package main api/openapi/trainings.yml
-	oapi-codegen -generate chi-server -o internal/trainings/openapi_api.gen.go -package main api/openapi/trainings.yml
+.PHONY: generate
+generate: ## Generate OpenAPI Go code (types + chi-server)
+	cd internal/trainer && go generate ./...
+	cd internal/trainings && go generate ./...
+	cd internal/users && go generate ./...
 
-	oapi-codegen -generate types -o internal/trainer/openapi_types.gen.go -package main api/openapi/trainer.yml
-	oapi-codegen -generate chi-server -o internal/trainer/openapi_api.gen.go -package main api/openapi/trainer.yml
-
-	oapi-codegen -generate types -o internal/users/openapi_types.gen.go -package main api/openapi/users.yml
-	oapi-codegen -generate chi-server -o internal/users/openapi_api.gen.go -package main api/openapi/users.yml
+.PHONY: proto
+proto: ## Generate protobuf/gRPC Go code (requires protoc)
+	cd internal/common && go generate ./...
 
 .PHONY: openapi_js
-openapi_js:
+openapi_js: ## Generate JavaScript API clients (requires Docker)
 	docker run --rm -v ${PWD}:/local openapitools/openapi-generator-cli:v4.3.0 generate \
         -i /local/api/openapi/trainings.yml \
         -g javascript \
@@ -29,13 +29,22 @@ openapi_js:
 		-g javascript \
 		-o /local/web/src/repositories/clients/users
 
-.PHONY: proto
-proto:
-	protoc --go_out=plugins=grpc:internal/common/genproto/trainer -I api/protobuf api/protobuf/trainer.proto
-	protoc --go_out=plugins=grpc:internal/common/genproto/users -I api/protobuf api/protobuf/users.proto
+.PHONY: clean
+clean: ## Remove generated OpenAPI Go code
+	rm -f internal/trainer/openapi_*.gen.go
+	rm -f internal/trainings/openapi_*.gen.go
+	rm -f internal/users/openapi_*.gen.go
+
+# .PHONY: clean-all
+# clean-all: clean ## Remove all generated code (OpenAPI + protobuf + JS clients)
+# 	rm -f internal/common/genproto/trainer/*.pb.go
+# 	rm -f internal/common/genproto/users/*.pb.go
+# 	rm -rf web/src/repositories/clients/trainer
+# 	rm -rf web/src/repositories/clients/trainings
+# 	rm -rf web/src/repositories/clients/users
 
 .PHONY: lint
-lint:
+lint: ## Run linter on all services
 	@./scripts/lint.sh trainer
 	@./scripts/lint.sh trainings
 	@./scripts/lint.sh users
