@@ -11,6 +11,7 @@ import (
 )
 
 type GrpcServer struct {
+	users.UnimplementedUsersServiceServer
 	db db
 }
 

@@ -14,6 +14,7 @@ import (
 )
 
 type GrpcServer struct {
+	trainer.UnimplementedTrainerServiceServer
 	db db
 }
 

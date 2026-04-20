@@ -36,7 +36,7 @@ func main() {
 		})
 	case "grpc":
 		server.RunGRPCServer(func(server *grpc.Server) {
-			svc := GrpcServer{firebaseDB}
+			svc := GrpcServer{db: firebaseDB}
 			trainer.RegisterTrainerServiceServer(server, svc)
 		})
 	default:
