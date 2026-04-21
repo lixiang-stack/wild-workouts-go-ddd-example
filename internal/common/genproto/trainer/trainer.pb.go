@@ -111,12 +111,10 @@ func (x *IsHourAvailableResponse) GetIsAvailable() bool {
 }
 
 type UpdateHourRequest struct {
-	state                protoimpl.MessageState `protogen:"open.v1"`
-	Time                 *timestamppb.Timestamp `protobuf:"bytes,1,opt,name=time,proto3" json:"time,omitempty"`
-	HasTrainingScheduled bool                   `protobuf:"varint,2,opt,name=has_training_scheduled,json=hasTrainingScheduled,proto3" json:"has_training_scheduled,omitempty"`
-	Available            bool                   `protobuf:"varint,3,opt,name=available,proto3" json:"available,omitempty"`
-	unknownFields        protoimpl.UnknownFields
-	sizeCache            protoimpl.SizeCache
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Time          *timestamppb.Timestamp `protobuf:"bytes,1,opt,name=time,proto3" json:"time,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *UpdateHourRequest) Reset() {
@@ -154,20 +152,6 @@ func (x *UpdateHourRequest) GetTime() *timestamppb.Timestamp {
 		return x.Time
 	}
 	return nil
-}
-
-func (x *UpdateHourRequest) GetHasTrainingScheduled() bool {
-	if x != nil {
-		return x.HasTrainingScheduled
-	}
-	return false
-}
-
-func (x *UpdateHourRequest) GetAvailable() bool {
-	if x != nil {
-		return x.Available
-	}
-	return false
 }
 
 type EmptyResponse struct {
@@ -214,16 +198,15 @@ const file_trainer_proto_rawDesc = "" +
 	"\x16IsHourAvailableRequest\x12.\n" +
 	"\x04time\x18\x01 \x01(\v2\x1a.google.protobuf.TimestampR\x04time\"<\n" +
 	"\x17IsHourAvailableResponse\x12!\n" +
-	"\fis_available\x18\x01 \x01(\bR\visAvailable\"\x97\x01\n" +
+	"\fis_available\x18\x01 \x01(\bR\visAvailable\"C\n" +
 	"\x11UpdateHourRequest\x12.\n" +
-	"\x04time\x18\x01 \x01(\v2\x1a.google.protobuf.TimestampR\x04time\x124\n" +
-	"\x16has_training_scheduled\x18\x02 \x01(\bR\x14hasTrainingScheduled\x12\x1c\n" +
-	"\tavailable\x18\x03 \x01(\bR\tavailable\"\x0f\n" +
-	"\rEmptyResponse2\xac\x01\n" +
+	"\x04time\x18\x01 \x01(\v2\x1a.google.protobuf.TimestampR\x04time\"\x0f\n" +
+	"\rEmptyResponse2\xc5\x02\n" +
 	"\x0eTrainerService\x12V\n" +
-	"\x0fIsHourAvailable\x12\x1f.trainer.IsHourAvailableRequest\x1a .trainer.IsHourAvailableResponse\"\x00\x12B\n" +
-	"\n" +
-	"UpdateHour\x12\x1a.trainer.UpdateHourRequest\x1a\x16.trainer.EmptyResponse\"\x00BXZVgithub.com/ThreeDotsLabs/wild-workouts-go-ddd-example/internal/common/genproto/trainerb\x06proto3"
+	"\x0fIsHourAvailable\x12\x1f.trainer.IsHourAvailableRequest\x1a .trainer.IsHourAvailableResponse\"\x00\x12H\n" +
+	"\x10ScheduleTraining\x12\x1a.trainer.UpdateHourRequest\x1a\x16.trainer.EmptyResponse\"\x00\x12F\n" +
+	"\x0eCancelTraining\x12\x1a.trainer.UpdateHourRequest\x1a\x16.trainer.EmptyResponse\"\x00\x12I\n" +
+	"\x11MakeHourAvailable\x12\x1a.trainer.UpdateHourRequest\x1a\x16.trainer.EmptyResponse\"\x00BXZVgithub.com/ThreeDotsLabs/wild-workouts-go-ddd-example/internal/common/genproto/trainerb\x06proto3"
 
 var (
 	file_trainer_proto_rawDescOnce sync.Once
@@ -249,11 +232,15 @@ var file_trainer_proto_depIdxs = []int32{
 	4, // 0: trainer.IsHourAvailableRequest.time:type_name -> google.protobuf.Timestamp
 	4, // 1: trainer.UpdateHourRequest.time:type_name -> google.protobuf.Timestamp
 	0, // 2: trainer.TrainerService.IsHourAvailable:input_type -> trainer.IsHourAvailableRequest
-	2, // 3: trainer.TrainerService.UpdateHour:input_type -> trainer.UpdateHourRequest
-	1, // 4: trainer.TrainerService.IsHourAvailable:output_type -> trainer.IsHourAvailableResponse
-	3, // 5: trainer.TrainerService.UpdateHour:output_type -> trainer.EmptyResponse
-	4, // [4:6] is the sub-list for method output_type
-	2, // [2:4] is the sub-list for method input_type
+	2, // 3: trainer.TrainerService.ScheduleTraining:input_type -> trainer.UpdateHourRequest
+	2, // 4: trainer.TrainerService.CancelTraining:input_type -> trainer.UpdateHourRequest
+	2, // 5: trainer.TrainerService.MakeHourAvailable:input_type -> trainer.UpdateHourRequest
+	1, // 6: trainer.TrainerService.IsHourAvailable:output_type -> trainer.IsHourAvailableResponse
+	3, // 7: trainer.TrainerService.ScheduleTraining:output_type -> trainer.EmptyResponse
+	3, // 8: trainer.TrainerService.CancelTraining:output_type -> trainer.EmptyResponse
+	3, // 9: trainer.TrainerService.MakeHourAvailable:output_type -> trainer.EmptyResponse
+	6, // [6:10] is the sub-list for method output_type
+	2, // [2:6] is the sub-list for method input_type
 	2, // [2:2] is the sub-list for extension type_name
 	2, // [2:2] is the sub-list for extension extendee
 	0, // [0:2] is the sub-list for field type_name

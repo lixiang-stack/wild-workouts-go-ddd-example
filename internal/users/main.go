@@ -21,7 +21,7 @@ func main() {
 	ctx := context.Background()
 	firestoreClient, err := firestore.NewClient(ctx, os.Getenv("GCP_PROJECT"))
 	if err != nil {
-		panic(err)
+		panic(fmt.Errorf("init firestor projectID:%s fail:%v", os.Getenv("GCP_PROJECT"), err))
 	}
 	firebaseDB := db{firestoreClient}
 
