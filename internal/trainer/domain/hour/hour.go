@@ -1,9 +1,11 @@
 package hour
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/pkg/errors"
+	"go.uber.org/multierr"
 )
 
 type Hour struct {
@@ -13,11 +15,8 @@ type Hour struct {
 }
 
 var (
-	ErrNotFullHour    = errors.New("hour should be a full hour")
-	ErrTooDistantDate = errors.Errorf("schedule can be only set for next %d weeks", MaxWeeksInTheFutureToSet)
-	ErrPastHour       = errors.New("cannot create hour from past")
-	ErrTooEarlyHour   = errors.Errorf("too early hour, min UTC hour: %d", MinUtcHour)
-	ErrTooLateHour    = errors.Errorf("too late hour, max UTC hour: %d", MaxUtcHour)
+	ErrNotFullHour = errors.New("hour should be a full hour")
+	ErrPastHour    = errors.New("cannot create hour from past")
 )
 
 var (
@@ -26,18 +25,89 @@ var (
 	ErrHourNotAvailable    = errors.New("hour is not available")
 )
 
-const (
-	// in theory it may be in some config, but let's dont overcomplicate, YAGNI!
-	MaxWeeksInTheFutureToSet = 6
-	MinUtcHour               = 12
-	MaxUtcHour               = 20
+type FactoryConfig struct {
+	MaxWeeksInTheFutureToSet int
+	MinUtcHour               int
+	MaxUtcHour               int
+}
 
-	day  = time.Hour * 24
-	week = day * 7
-)
+func (f FactoryConfig) Validate() error {
+	var err error
 
-func NewAvailableHour(hour time.Time) (*Hour, error) {
-	if err := validateTime(hour); err != nil {
+	if f.MaxWeeksInTheFutureToSet < 1 {
+		err = multierr.Append(
+			err,
+			errors.Errorf(
+				"MaxWeeksInTheFutureToSet should be greater than 1, but is %d",
+				f.MaxWeeksInTheFutureToSet,
+			),
+		)
+	}
+	if f.MinUtcHour < 0 || f.MinUtcHour > 24 {
+		err = multierr.Append(
+			err,
+			errors.Errorf(
+				"MinUtcHour should be value between 0 and 24, but is %d",
+				f.MinUtcHour,
+			),
+		)
+	}
+	if f.MaxUtcHour < 0 || f.MaxUtcHour > 24 {
+		err = multierr.Append(
+			err,
+			errors.Errorf(
+				"MinUtcHour should be value between 0 and 24, but is %d",
+				f.MaxUtcHour,
+			),
+		)
+	}
+
+	if f.MinUtcHour > f.MaxUtcHour {
+		err = multierr.Append(
+			err,
+			errors.Errorf(
+				"MaxUtcHour (%d) can't be after MinUtcHour (%d)",
+				f.MaxUtcHour, f.MinUtcHour,
+			),
+		)
+	}
+
+	return err
+}
+
+type Factory struct {
+	// it's better to keep FactoryConfig as a private attributte,
+	// thanks to that we are always sure that our configuration is not changed in the not allowed way
+	fc FactoryConfig
+}
+
+func NewFactory(fc FactoryConfig) (Factory, error) {
+	if err := fc.Validate(); err != nil {
+		return Factory{}, errors.Wrap(err, "invalid config passed to factory")
+	}
+
+	return Factory{fc: fc}, nil
+}
+
+func MustNewFactory(fc FactoryConfig) Factory {
+	f, err := NewFactory(fc)
+	if err != nil {
+		panic(err)
+	}
+
+	return f
+}
+
+func (f Factory) Config() FactoryConfig {
+	return f.fc
+}
+
+func (f Factory) IsZero() bool {
+	return f == Factory{}
+}
+
+func (f Factory) NewAvailableHour(hour time.Time) (*Hour, error) {
+	if err := f.validateTime(hour); err != nil {
 		return nil, err
 	}
 
@@ -47,8 +117,8 @@ func NewAvailableHour(hour time.Time) (*Hour, error) {
 	}, nil
 }
 
-func NewNotAvailableHour(hour time.Time) (*Hour, error) {
-	if err := validateTime(hour); err != nil {
+func (f Factory) NewNotAvailableHour(hour time.Time) (*Hour, error) {
+	if err := f.validateTime(hour); err != nil {
 		return nil, err
 	}
 
@@ -62,8 +132,8 @@ func NewNotAvailableHour(hour time.Time) (*Hour, error) {
 //
 // It should be used only for unmarshalling from the database!
 // You can't use UnmarshalHourFromRepository as constructor - It may put domain into the invalid state!
-func UnmarshalHourFromRepository(hour time.Time, availability Availability) (*Hour, error) {
-	if err := validateTime(hour); err != nil {
+func (f Factory) UnmarshalHourFromRepository(hour time.Time, availability Availability) (*Hour, error) {
+	if err := f.validateTime(hour); err != nil {
 		return nil, err
 	}
 
@@ -77,24 +147,34 @@ func UnmarshalHourFromRepository(hour time.Time, availability Availability) (*Ho
 	}, nil
 }
 
-func validateTime(hour time.Time) error {
+func (f Factory) validateTime(hour time.Time) error {
 	if !hour.Round(time.Hour).Equal(hour) {
 		return ErrNotFullHour
 	}
 
-	if hour.After(time.Now().Add(week * MaxWeeksInTheFutureToSet)) {
-		return ErrTooDistantDate
+	// AddDate is better than Add for adding days, because not every day have 24h!
+	if hour.After(time.Now().AddDate(0, 0, f.fc.MaxWeeksInTheFutureToSet*7)) {
+		return TooDistantDateError{
+			MaxWeeksInTheFutureToSet: f.fc.MaxWeeksInTheFutureToSet,
+			ProvidedDate:             hour,
+		}
 	}
 
 	currentHour := time.Now().Truncate(time.Hour)
 	if hour.Before(currentHour) || hour.Equal(currentHour) {
 		return ErrPastHour
 	}
-	if hour.UTC().Hour() > MaxUtcHour {
-		return ErrTooLateHour
+	if hour.UTC().Hour() > f.fc.MaxUtcHour {
+		return TooLateHourError{
+			MaxUtcHour:   f.fc.MaxUtcHour,
+			ProvidedTime: hour,
+		}
 	}
-	if hour.UTC().Hour() < MinUtcHour {
-		return ErrTooEarlyHour
+	if hour.UTC().Hour() < f.fc.MinUtcHour {
+		return TooEarlyHourError{
+			MinUtcHour:   f.fc.MinUtcHour,
+			ProvidedTime: hour,
+		}
 	}
 
 	return nil
@@ -102,6 +182,10 @@ func validateTime(hour time.Time) error {
 
 func (h *Hour) Time() time.Time {
 	return h.hour
+}
+
+func (h Hour) Availability() Availability {
+	return h.availability
 }
 
 func (h Hour) IsAvailable() bool {
@@ -146,4 +230,46 @@ func (h *Hour) CancelTraining() error {
 
 	h.availability = Available
 	return nil
+}
+
+// If you have the error with a more complex context,
+// it's a good idea to define it as a separate type.
+// There is nothing worst, than error "invalid date" without knowing what date was passed and what is the valid value!
+type TooDistantDateError struct {
+	MaxWeeksInTheFutureToSet int
+	ProvidedDate             time.Time
+}
+
+func (e TooDistantDateError) Error() string {
+	return fmt.Sprintf(
+		"schedule can be only set for next %d weeks, provided date: %s",
+		e.MaxWeeksInTheFutureToSet,
+		e.ProvidedDate,
+	)
+}
+
+type TooEarlyHourError struct {
+	MinUtcHour   int
+	ProvidedTime time.Time
+}
+
+func (e TooEarlyHourError) Error() string {
+	return fmt.Sprintf(
+		"too early hour, min UTC hour: %d, provided time: %s",
+		e.MinUtcHour,
+		e.ProvidedTime,
+	)
+}
+
+type TooLateHourError struct {
+	MaxUtcHour   int
+	ProvidedTime time.Time
+}
+
+func (e TooLateHourError) Error() string {
+	return fmt.Sprintf(
+		"too late hour, min UTC hour: %d, provided time: %s",
+		e.MaxUtcHour,
+		e.ProvidedTime,
+	)
 }

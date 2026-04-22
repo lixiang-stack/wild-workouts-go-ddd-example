@@ -1,3 +1,5 @@
+include .env
+
 .PHONY: help
 help: ## Show available targets
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  %-15s %s\n", $$1, $$2}'
@@ -48,3 +50,8 @@ lint: ## Run linter on all services
 	@./scripts/lint.sh trainer
 	@./scripts/lint.sh trainings
 	@./scripts/lint.sh users
+
+
+.PHONY: mycli
+mycli:
+	mycli -u ${MYSQL_USER} -p ${MYSQL_PASSWORD} ${MYSQL_DATABASE}

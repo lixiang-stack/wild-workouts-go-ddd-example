@@ -14,7 +14,8 @@ No application is perfect from the beginning. With over a dozen coming articles,
 4. [**You should not build your own authentication. Let Firebase do it for you.**](https://threedots.tech/post/firebase-cloud-run-authentication/?utm_source=github.com)
 5. [**Business Applications in Go: Things to know about DRY**](https://threedots.tech/post/things-to-know-about-dry/?utm_source=github.com)
 6. [**When microservices in Go are not enough: introduction to DDD Lite**](https://threedots.tech/post/ddd-lite-in-go-introduction/?utm_source=github.com)
-7. *More articles are on the way!*
+7. [**Repository pattern: painless way to simplify your Go service logic**](https://threedots.tech/post/repository-pattern-in-go/?utm_source=github.com)
+8. *More articles are on the way!*
 
 ### Directories
 
@@ -57,6 +58,11 @@ You can also view all available make targets with `make help`.
 4. 更新grpc.go和http.go：只做流程编排，不设计具体逻辑（不展开细节），细节由domain和repository负责。
 5. 更新trainings：修改调用trainer的rpc接口。
 6. 其他：DTO
+
+#### v2：with Repository pattern
+1. 新增FactoryConfig：
+	作为领域对象hour的可变配置项，hour.go内部全局的校验收敛到FactoryConfig对象内部。FactoryConfig内部包装New*Hour，对外统一使用FactoryConfig提供的NewHour接口。
+2. 新增多存储库，repository的多种实现。
 
 ### Running locally
 

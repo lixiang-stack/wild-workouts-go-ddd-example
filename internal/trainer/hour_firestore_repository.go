@@ -14,14 +14,22 @@ import (
 
 type FirestoreHourRepository struct {
 	firestoreClient *firestore.Client
+	hourFactory     hour.Factory
 }
 
-func NewFirestoreHourRepository(firestoreClient *firestore.Client) *FirestoreHourRepository {
+func NewFirestoreHourRepository(firestoreClient *firestore.Client, hourFactory hour.Factory) *FirestoreHourRepository {
 	if firestoreClient == nil {
 		panic("missing firestoreClient")
 	}
 
-	return &FirestoreHourRepository{firestoreClient: firestoreClient}
+	if hourFactory.IsZero() {
+		panic("missing hourFactory")
+	}
+
+	return &FirestoreHourRepository{
+		firestoreClient: firestoreClient,
+		hourFactory:     hourFactory,
+	}
 }
 
 func (f FirestoreHourRepository) GetOrCreateHour(ctx context.Context, time time.Time) (*hour.Hour, error) {
@@ -37,7 +45,7 @@ func (f FirestoreHourRepository) GetOrCreateHour(ctx context.Context, time time.
 		return nil, err
 	}
 
-	hourFromDb, err := f.domainHourFromDateModel(date, time)
+	hourFromDb, err := f.domainHourFromDateDTO(date, time)
 	if err != nil {
 		return nil, err
 	}
@@ -65,7 +73,7 @@ func (f FirestoreHourRepository) UpdateHour(
 			return err
 		}
 
-		hourFromDB, err := f.domainHourFromDateModel(firebaseDate, hourTime)
+		hourFromDB, err := f.domainHourFromDateDTO(firebaseDate, hourTime)
 		if err != nil {
 			return err
 		}
@@ -113,10 +121,10 @@ func (f FirestoreHourRepository) getDateDTO(
 
 // for now we are keeping backward comparability, because of that it's a bit messy and overcomplicated
 // todo - we will clean it up later with CQRS :-)
-func (f FirestoreHourRepository) domainHourFromDateModel(date Date, hourTime time.Time) (*hour.Hour, error) {
+func (f FirestoreHourRepository) domainHourFromDateDTO(date Date, hourTime time.Time) (*hour.Hour, error) {
 	firebaseHour, found := findHourInDateDTO(date, hourTime)
 	if !found {
-		return hour.NewNotAvailableHour(hourTime)
+		return f.hourFactory.NewNotAvailableHour(hourTime)
 	}
 
 	availability, err := mapAvailabilityFromDTO(firebaseHour)
@@ -124,7 +132,7 @@ func (f FirestoreHourRepository) domainHourFromDateModel(date Date, hourTime tim
 		return nil, err
 	}
 
-	return hour.UnmarshalHourFromRepository(firebaseHour.Hour.Local(), availability)
+	return f.hourFactory.UnmarshalHourFromRepository(firebaseHour.Hour.Local(), availability)
 }
 
 // for now we are keeping backward comparability, because of that it's a bit messy and overcomplicated

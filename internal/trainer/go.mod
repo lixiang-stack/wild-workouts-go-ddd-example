@@ -8,9 +8,12 @@ require (
 	github.com/deepmap/oapi-codegen v1.3.6
 	github.com/go-chi/chi v4.1.0+incompatible
 	github.com/go-chi/render v1.0.1
+	github.com/go-sql-driver/mysql v1.8.1
 	github.com/golang/protobuf v1.5.4
+	github.com/jmoiron/sqlx v1.4.0
 	github.com/pkg/errors v0.9.1
 	github.com/sirupsen/logrus v1.5.0
+	go.uber.org/multierr v1.1.0
 	google.golang.org/api v0.218.0
 	google.golang.org/grpc v1.71.3
 )
@@ -25,6 +28,7 @@ require (
 	cloud.google.com/go/longrunning v0.6.4 // indirect
 	cloud.google.com/go/monitoring v1.23.0 // indirect
 	cloud.google.com/go/storage v1.50.0 // indirect
+	filippo.io/edwards25519 v1.1.0 // indirect
 	firebase.google.com/go v3.12.0+incompatible // indirect
 	github.com/GoogleCloudPlatform/opentelemetry-operations-go/detectors/gcp v1.27.0 // indirect
 	github.com/GoogleCloudPlatform/opentelemetry-operations-go/exporter/metric v0.51.0 // indirect
@@ -63,6 +67,7 @@ require (
 	go.opentelemetry.io/otel/sdk v1.34.0 // indirect
 	go.opentelemetry.io/otel/sdk/metric v1.34.0 // indirect
 	go.opentelemetry.io/otel/trace v1.38.0 // indirect
+	go.uber.org/atomic v1.4.0 // indirect
 	golang.org/x/crypto v0.32.0 // indirect
 	golang.org/x/net v0.34.0 // indirect
 	golang.org/x/oauth2 v0.25.0 // indirect
