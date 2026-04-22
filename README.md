@@ -64,6 +64,13 @@ You can also view all available make targets with `make help`.
 	作为领域对象hour的可变配置项，hour.go内部全局的校验收敛到FactoryConfig对象内部。FactoryConfig内部包装New*Hour，对外统一使用FactoryConfig提供的NewHour接口。
 2. 新增多存储库，repository的多种实现。
 
+#### v3：add unit test
+1. test tables
+2. assert functions
+3. parallel execution
+4. black-box testing
+5. 使用方式: make test或make test -- -v
+
 ### Running locally
 
 ```go

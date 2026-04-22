@@ -1,5 +1,3 @@
-include .env
-
 .PHONY: help
 help: ## Show available targets
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  %-15s %s\n", $$1, $$2}'
@@ -51,7 +49,14 @@ lint: ## Run linter on all services
 	@./scripts/lint.sh trainings
 	@./scripts/lint.sh users
 
+INERNAL_PACKAGES := $(wildcard internal/*)
 
-.PHONY: mycli
-mycli:
-	mycli -u ${MYSQL_USER} -p ${MYSQL_PASSWORD} ${MYSQL_DATABASE}
+ifeq (test,$(firstword $(MAKECMDGOALS)))
+  TEST_ARGS := $(subst $$,$$$$,$(wordlist 2,$(words $(MAKECMDGOALS)),$(MAKECMDGOALS)))
+  $(eval $(TEST_ARGS):;@:)
+endif
+
+.PHONY: test $(INERNAL_PACKAGES)
+test: $(INERNAL_PACKAGES)
+$(INERNAL_PACKAGES):
+	@(cd $@ && go test -count=1 -race ./... $(subst $$$$,$$,$(TEST_ARGS)))
