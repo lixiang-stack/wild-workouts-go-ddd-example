@@ -30,12 +30,13 @@ func (h HttpServer) GetTrainings(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	trainings, err := h.db.GetTrainings(r.Context(), user)
+	trainingModels, err := h.db.GetTrainings(r.Context(), user)
 	if err != nil {
 		httperr.InternalError("cannot-get-trainings", err, w, r)
 		return
 	}
 
+	trainings := trainingModelsToResponse(trainingModels)
 	trainingsResp := Trainings{trainings}
 
 	render.Respond(w, r, trainingsResp)
@@ -64,12 +65,12 @@ func (h HttpServer) CreateTraining(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	training := &Training{
+	training := &TrainingModel{
 		Notes:    postTraining.Notes,
 		Time:     postTraining.Time,
 		User:     user.DisplayName,
-		UserUuid: user.UUID,
-		Uuid:     uuid.New().String(),
+		UserUUID: user.UUID,
+		UUID:     uuid.New().String(),
 	}
 
 	collection := h.db.TrainingsCollection()
@@ -102,7 +103,7 @@ func (h HttpServer) CreateTraining(w http.ResponseWriter, r *http.Request) {
 			return errors.Wrap(err, "unable to update trainer hour")
 		}
 
-		return tx.Create(collection.Doc(training.Uuid), training)
+		return tx.Create(collection.Doc(training.UUID), training)
 	})
 	if err != nil {
 		httperr.InternalError("cannot-create-training", err, w, r)
@@ -129,14 +130,14 @@ func (h HttpServer) CancelTraining(w http.ResponseWriter, r *http.Request) {
 			return errors.Wrap(err, "unable to get actual docs")
 		}
 
-		training := &Training{}
+		training := &TrainingModel{}
 		err = firestoreTraining.DataTo(training)
 		if err != nil {
 			return errors.Wrap(err, "unable to load document")
 		}
 
-		if user.Role != "trainer" && training.UserUuid != user.UUID {
-			return errors.Errorf("user '%s' is trying to cancel training of user '%s'", user.UUID, training.UserUuid)
+		if user.Role != "trainer" && training.UserUUID != user.UUID {
+			return errors.Errorf("user '%s' is trying to cancel training of user '%s'", user.UUID, training.UserUUID)
 		}
 
 		var trainingBalanceDelta int64
@@ -155,7 +156,7 @@ func (h HttpServer) CancelTraining(w http.ResponseWriter, r *http.Request) {
 
 		if trainingBalanceDelta != 0 {
 			_, err := h.usersClient.UpdateTrainingBalance(ctx, &users.UpdateTrainingBalanceRequest{
-				UserId:       training.UserUuid,
+				UserId:       training.UserUUID,
 				AmountChange: trainingBalanceDelta,
 			})
 			if err != nil {
@@ -219,7 +220,7 @@ func (h HttpServer) RescheduleTraining(w http.ResponseWriter, r *http.Request) {
 			return errors.Errorf("there is training already at %s", rescheduleTraining.Time)
 		}
 
-		var training Training
+		var training TrainingModel
 		err = doc.DataTo(&training)
 		if err != nil {
 			return errors.Wrap(err, "could not unmarshal training")
@@ -239,7 +240,7 @@ func (h HttpServer) RescheduleTraining(w http.ResponseWriter, r *http.Request) {
 			training.Notes = rescheduleTraining.Notes
 		}
 
-		return tx.Set(collection.Doc(training.Uuid), training)
+		return tx.Set(collection.Doc(training.UUID), training)
 	})
 	if err != nil {
 		httperr.InternalError("cannot-update-training", err, w, r)
@@ -262,7 +263,7 @@ func (h HttpServer) ApproveRescheduleTraining(w http.ResponseWriter, r *http.Req
 			return errors.Wrap(err, "could not find training")
 		}
 
-		var training Training
+		var training TrainingModel
 		err = doc.DataTo(&training)
 		if err != nil {
 			return errors.Wrap(err, "could not unmarshal training")
@@ -274,8 +275,8 @@ func (h HttpServer) ApproveRescheduleTraining(w http.ResponseWriter, r *http.Req
 		if training.MoveProposedBy == nil {
 			return errors.New("training has no MoveProposedBy")
 		}
-		if *training.MoveProposedBy == "trainer" && training.UserUuid != user.UUID {
-			return errors.Errorf("user '%s' cannot approve reschedule of user '%s'", user.UUID, training.UserUuid)
+		if *training.MoveProposedBy == "trainer" && training.UserUUID != user.UUID {
+			return errors.Errorf("user '%s' cannot approve reschedule of user '%s'", user.UUID, training.UserUUID)
 		}
 		if *training.MoveProposedBy == user.Role {
 			return errors.New("reschedule cannot be accepted by requesting person")
@@ -284,7 +285,7 @@ func (h HttpServer) ApproveRescheduleTraining(w http.ResponseWriter, r *http.Req
 		training.Time = *training.ProposedTime
 		training.ProposedTime = nil
 
-		return tx.Set(h.db.TrainingsCollection().Doc(training.Uuid), training)
+		return tx.Set(h.db.TrainingsCollection().Doc(training.UUID), training)
 	})
 	if err != nil {
 		httperr.InternalError("cannot-update-training", err, w, r)
@@ -307,7 +308,7 @@ func (h HttpServer) RejectRescheduleTraining(w http.ResponseWriter, r *http.Requ
 			return errors.Wrap(err, "could not find training")
 		}
 
-		var training Training
+		var training TrainingModel
 		err = doc.DataTo(&training)
 		if err != nil {
 			return errors.Wrap(err, "could not unmarshal training")
@@ -316,13 +317,13 @@ func (h HttpServer) RejectRescheduleTraining(w http.ResponseWriter, r *http.Requ
 		if training.MoveProposedBy == nil {
 			return errors.New("training has no MoveProposedBy")
 		}
-		if *training.MoveProposedBy != "trainer" && training.UserUuid != user.UUID {
-			return errors.Errorf("user '%s' cannot approve reschedule of user '%s'", user.UUID, training.UserUuid)
+		if *training.MoveProposedBy != "trainer" && training.UserUUID != user.UUID {
+			return errors.Errorf("user '%s' cannot approve reschedule of user '%s'", user.UUID, training.UserUUID)
 		}
 
 		training.ProposedTime = nil
 
-		return tx.Set(h.db.TrainingsCollection().Doc(training.Uuid), training)
+		return tx.Set(h.db.TrainingsCollection().Doc(training.UUID), training)
 	})
 	if err != nil {
 		httperr.InternalError("cannot-update-training", err, w, r)
@@ -356,4 +357,25 @@ func (h HttpServer) rescheduleTraining(ctx context.Context, oldTime, newTime tim
 	}
 
 	return nil
+}
+
+func trainingModelsToResponse(models []TrainingModel) []Training {
+	var trainings []Training
+	for _, tm := range models {
+		t := Training{
+			CanBeCancelled:     tm.canBeCancelled(),
+			MoveProposedBy:     tm.MoveProposedBy,
+			MoveRequiresAccept: !tm.canBeCancelled(),
+			Notes:              tm.Notes,
+			ProposedTime:       tm.ProposedTime,
+			Time:               tm.Time,
+			User:               tm.User,
+			UserUuid:           tm.UserUUID,
+			Uuid:               tm.UUID,
+		}
+
+		trainings = append(trainings, t)
+	}
+
+	return trainings
 }

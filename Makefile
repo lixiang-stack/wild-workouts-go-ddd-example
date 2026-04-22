@@ -56,7 +56,19 @@ ifeq (test,$(firstword $(MAKECMDGOALS)))
   $(eval $(TEST_ARGS):;@:)
 endif
 
+ifeq (test-integration,$(firstword $(MAKECMDGOALS)))
+  TEST_ARGS := $(subst $$,$$$$,$(wordlist 2,$(words $(MAKECMDGOALS)),$(MAKECMDGOALS)))
+  $(eval $(TEST_ARGS):;@:)
+endif
+
 .PHONY: test $(INERNAL_PACKAGES)
-test: $(INERNAL_PACKAGES)
+test: $(INERNAL_PACKAGES) ## Run unit tests (no external dependencies required)
 $(INERNAL_PACKAGES):
 	@(cd $@ && go test -count=1 -race ./... $(subst $$$$,$$,$(TEST_ARGS)))
+
+INTEGRATION_PACKAGES := $(addsuffix .integration,$(INERNAL_PACKAGES))
+
+.PHONY: test-integration $(INTEGRATION_PACKAGES)
+test-integration: $(INTEGRATION_PACKAGES) ## Run contract/integration tests (requires Firestore emulator + MySQL; see docker-compose.yml)
+$(INTEGRATION_PACKAGES):
+	@(cd $(basename $@) && go test -count=1 -race -tags=integration ./... $(subst $$$$,$$,$(TEST_ARGS)))

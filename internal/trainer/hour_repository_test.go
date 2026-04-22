@@ -1,85 +1,64 @@
-
 package main_test
 
 import (
 	"context"
 	"errors"
 	"math/rand"
-	"os"
 	"sync"
 	"testing"
 	"time"
 
-@@ -13,9 +16,67 @@ import (
+	main "github.com/ThreeDotsLabs/wild-workouts-go-ddd-example/internal/trainer"
+	"github.com/ThreeDotsLabs/wild-workouts-go-ddd-example/internal/trainer/domain/hour"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
-func TestRepository(t *testing.T) {
+// TestMemoryHourRepository exercises the in-memory repository as a pure unit test.
+//
+// It does NOT require Firestore or MySQL — running `make test` will run this
+// and nothing that touches an external database.
+//
+// The Firebase/MySQL repositories are covered by TestRepositoryContract in
+// hour_repository_contract_test.go, which is guarded by `//go:build integration`.
+func TestMemoryHourRepository(t *testing.T) {
 	rand.Seed(time.Now().UTC().UnixNano())
 
-	repositories := createRepositories(t)
+	repo := main.NewMemoryHourRepository(testHourFactory)
 
-	for i := range repositories {
-		// When you are looping over slice and later using iterated value in goroutine (here because of t.Parallel()),
-		// you need to always create variable scoped in loop body!
-		// More info here: https://github.com/golang/go/wiki/CommonMistakes#using-goroutines-on-loop-iterator-variables
-		r := repositories[i]
-
-		t.Run(r.Name, func(t *testing.T) {
-			// It's always a good idea to build all non-unit tests to be able to work in parallel.
-			// Thanks to that, your tests will be always fast and you will not be afraid to add more tests because of slowdown.
-			t.Parallel()
-
-			t.Run("testUpdateHour", func(t *testing.T) {
-				t.Parallel()
-				testUpdateHour(t, r.Repository)
-			})
-			t.Run("testUpdateHour_parallel", func(t *testing.T) {
-				t.Parallel()
-				testUpdateHour_parallel(t, r.Repository)
-			})
-			t.Run("testHourRepository_update_existing", func(t *testing.T) {
-				t.Parallel()
-				testHourRepository_update_existing(t, r.Repository)
-			})
-			t.Run("testUpdateHour_rollback", func(t *testing.T) {
-				t.Parallel()
-				testUpdateHour_rollback(t, r.Repository)
-			})
-		})
-	}
+	t.Run("testUpdateHour", func(t *testing.T) {
+		t.Parallel()
+		testUpdateHour(t, repo)
+	})
+	t.Run("testUpdateHour_parallel", func(t *testing.T) {
+		t.Parallel()
+		testUpdateHour_parallel(t, repo)
+	})
+	t.Run("testHourRepository_update_existing", func(t *testing.T) {
+		t.Parallel()
+		testHourRepository_update_existing(t, repo)
+	})
+	t.Run("testUpdateHour_rollback", func(t *testing.T) {
+		t.Parallel()
+		testUpdateHour_rollback(t, repo)
+	})
 }
 
-type Repository struct {
-	Name       string
-	Repository hour.Repository
-}
-
-func createRepositories(t *testing.T) []Repository {
-	return []Repository{
-		{
-			Name:       "Firebase",
-			Repository: newFirebaseRepository(t, context.Background()),
-		},
-		{
-			Name:       "MySQL",
-			Repository: newMySQLRepository(t),
-		},
-		{
-			Name:       "memory",
-			Repository: main.NewMemoryHourRepository(testHourFactory),
-		},
-	}
-}
+// ---------------------------------------------------------------------------
+// Shared sub-test implementations.
+//
+// These are also reused by the contract test (see hour_repository_contract_test.go),
+// where they're run against the Firebase and MySQL implementations too.
+// ---------------------------------------------------------------------------
 
 func testUpdateHour(t *testing.T, repository hour.Repository) {
 	t.Helper()
 	ctx := context.Background()
 
-
 	testCases := []struct {
 		Name       string
-@@ -24,13 +85,13 @@ func TestFirestoreHourRepository(t *testing.T) {
+		CreateHour func(*testing.T) *hour.Hour
+	}{
 		{
 			Name: "available_hour",
 			CreateHour: func(t *testing.T) *hour.Hour {
@@ -93,7 +72,8 @@ func testUpdateHour(t *testing.T, repository hour.Repository) {
 				require.NoError(t, h.MakeNotAvailable())
 
 				return h
-@@ -39,7 +100,7 @@ func TestFirestoreHourRepository(t *testing.T) {
+			},
+		},
 		{
 			Name: "hour_with_training",
 			CreateHour: func(t *testing.T) *hour.Hour {
@@ -101,7 +81,11 @@ func testUpdateHour(t *testing.T, repository hour.Repository) {
 				require.NoError(t, h.ScheduleTraining())
 
 				return h
-@@ -51,46 +112,140 @@ func TestFirestoreHourRepository(t *testing.T) {
+			},
+		},
+	}
+
+	for _, tc := range testCases {
 		t.Run(tc.Name, func(t *testing.T) {
 			newHour := tc.CreateHour(t)
 
@@ -191,7 +175,6 @@ func testUpdateHour_rollback(t *testing.T, repository hour.Repository) {
 	t.Helper()
 	ctx := context.Background()
 
-
 	hourTime := newValidHourTime()
 
 	err := repository.UpdateHour(ctx, hourTime, func(h *hour.Hour) (*hour.Hour, error) {
@@ -244,7 +227,24 @@ func TestNewDateDTO(t *testing.T) {
 	testCases := []struct {
 		Time             time.Time
 		ExpectedDateTime time.Time
-@@ -115,35 +270,65 @@ func TestNewDateDTO(t *testing.T) {
+	}{
+		{
+			Time:             time.Date(3333, 1, 1, 0, 0, 0, 0, time.UTC),
+			ExpectedDateTime: time.Date(3333, 1, 1, 0, 0, 0, 0, time.UTC),
+		},
+		{
+			// we are storing date in UTC
+			// it's still 1 January 22:00 in UTC while it's midnight in +2 timezone
+			Time:             time.Date(3333, 1, 2, 0, 0, 0, 0, time.FixedZone("FOO", 2*60*60)),
+			ExpectedDateTime: time.Date(3333, 1, 1, 0, 0, 0, 0, time.UTC),
+		},
+	}
+
+	for _, c := range testCases {
+		t.Run(c.Time.String(), func(t *testing.T) {
+			dateDTO := main.NewEmptyDateDTO(c.Time)
+			assert.True(t, dateDTO.Date.Equal(c.ExpectedDateTime), "%s != %s", dateDTO.Date, c.ExpectedDateTime)
+		})
 	}
 }
 
@@ -257,21 +257,6 @@ var testHourFactory = hour.MustNewFactory(hour.FactoryConfig{
 	MinUtcHour:               0,
 	MaxUtcHour:               24,
 })
-
-func newFirebaseRepository(t *testing.T, ctx context.Context) *main.FirestoreHourRepository {
-	firebaseClient, err := firestore.NewClient(ctx, os.Getenv("GCP_PROJECT"))
-	require.NoError(t, err)
-
-	return main.NewFirestoreHourRepository(firebaseClient, testHourFactory)
-
-}
-
-func newMySQLRepository(t *testing.T) *main.MySQLHourRepository {
-	db, err := main.NewMySQLConnection()
-	require.NoError(t, err)
-
-	return main.NewMySQLHourRepository(db, testHourFactory)
-}
 
 func newValidAvailableHour(t *testing.T) *hour.Hour {
 	hourTime := newValidHourTime()

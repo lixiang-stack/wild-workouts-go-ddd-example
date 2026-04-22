@@ -9,6 +9,8 @@ import (
 	"google.golang.org/grpc/status"
 )
 
+const lastIPField = "LastIP"
+
 type UserModel struct {
 	Balance     int
 	DisplayName string
@@ -79,11 +81,17 @@ func (d db) UpdateBalance(ctx context.Context, userID string, amountChange int) 
 func (d db) UpdateLastIP(ctx context.Context, userID string, lastIP string) error {
 	updates := []firestore.Update{
 		{
-			Path:  "LastIP",
+			Path:  lastIPField,
 			Value: lastIP,
 		},
 	}
 
-	_, err := d.UserDocumentRef(userID).Update(ctx, updates)
+	docRef := d.UserDocumentRef(userID)
+	_, err := docRef.Update(ctx, updates)
+	userNotExist := status.Code(err) == codes.NotFound
+	if userNotExist {
+		_, err := docRef.Set(ctx, map[string]string{lastIPField: lastIP})
+		return err
+	}
 	return err
 }
