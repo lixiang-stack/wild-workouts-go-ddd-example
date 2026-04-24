@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"math/rand"
 	"time"
 
 	"github.com/ThreeDotsLabs/wild-workouts-go-ddd-example/internal/common/client"
@@ -12,7 +11,11 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func loadFixtures(db db) {
+type fixturesChecker interface {
+	CanLoadFixtures(ctx context.Context, daysToSet int) (bool, error)
+}
+
+func loadFixtures(checker fixturesChecker) {
 	start := time.Now()
 	ctx := context.Background()
 
@@ -29,7 +32,7 @@ func loadFixtures(db db) {
 	var err error
 
 	for {
-		canLoad, err = canLoadFixtures(ctx, db)
+		canLoad, err = checker.CanLoadFixtures(ctx, daysToSet)
 		if err == nil {
 			break
 		}
@@ -65,7 +68,6 @@ func loadTrainerFixtures(ctx context.Context) error {
 	defer closeTrainerClient()
 
 	maxDate := time.Now().Add(time.Hour * 24 * daysToSet)
-	localRand := rand.New(rand.NewSource(3))
 
 	for date := time.Now(); date.Before(maxDate); date = date.Add(time.Hour * 24) {
 		for hour := 12; hour <= 20; hour++ {
@@ -81,25 +83,14 @@ func loadTrainerFixtures(ctx context.Context) error {
 				return errors.Wrapf(err, "unable to marshal time %s", trainingTime)
 			}
 
-			if localRand.NormFloat64() > 0 {
-				_, err = trainerClient.MakeHourAvailable(ctx, &trainer.UpdateHourRequest{
-					Time: ts,
-				})
-				if err != nil {
-					return errors.Wrap(err, "unable to update hour")
-				}
+			_, err = trainerClient.MakeHourAvailable(ctx, &trainer.UpdateHourRequest{
+				Time: ts,
+			})
+			if err != nil {
+				return errors.Wrap(err, "unable to update hour")
 			}
 		}
 	}
 
 	return nil
-}
-
-func canLoadFixtures(ctx context.Context, db db) (bool, error) {
-	documents, err := db.TrainerHoursCollection().Limit(daysToSet).Documents(ctx).GetAll()
-	if err != nil {
-		return false, err
-	}
-
-	return len(documents) < daysToSet, nil
 }

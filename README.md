@@ -16,7 +16,8 @@ No application is perfect from the beginning. With over a dozen coming articles,
 6. [**When microservices in Go are not enough: introduction to DDD Lite**](https://threedots.tech/post/ddd-lite-in-go-introduction/?utm_source=github.com)
 7. [**Repository pattern: painless way to simplify your Go service logic**](https://threedots.tech/post/repository-pattern-in-go/?utm_source=github.com)
 8. [**4 practical principles of high-quality database integration tests in Go**](https://threedots.tech/post/database-integration-testing/?utm_source=github.com)
-9. *More articles are on the way!*
+9. [**Introducing Clean Architecture by refactoring a Go project**](https://threedots.tech/post/introducing-clean-architecture/?utm_source=github.com)
+10. *More articles are on the way!*
 
 ### Directories
 
@@ -75,6 +76,60 @@ You can also view all available make targets with `make help`.
 #### v4：optimize
 1. 分离unit test和contract test
 2. 数据库Model(数据库层)和API types(入参出参)分开定义，不再复用
+
+#### v5：with Clean pattern
+1. 依赖倒置：外层(实现细节)可以引用内层（抽象层），反之不行。层层依赖，但不能夸层调用职责分离(隔离)。domains(领域模型)层对其他层一无所知，只包含纯粹业务逻辑。
+
+2. 两个维度依赖关系
+```
+adapters/ports → app → domain
+app感知不到adapters的存在（高层业务逻辑不再依赖具体的低层实现细节，只依赖接口）
+通过接口实现依赖反转。编译时app不依赖adapters，运行时，控制流确实从 app "流入" adapters。
+```
+编译时依赖关系(代码import)：
+
+      ┌──────────┐     ┌──────────┐
+      │  ports   │     │ adapters │
+      │ (HTTP/   │     │ (MySQL/  │
+      │  gRPC)   │     │ Firestore│
+      └────┬─────┘     └────┬─────┘
+           │                │
+           ▼                │
+      ┌──────────┐          │
+      │   app    │          │
+      │(Service) │          │
+      └────┬─────┘          │
+           │                │
+           ▼                │
+      ┌──────────┐          │
+      │  domain  │ ◄────────┘
+      │ (Hour,   │
+      │ Factory, │
+      │ Repository│
+      │ interface)│
+      └──────────┘
+
+运行时数据流：
+```
+ports → app → adapters → domain
+```
+
+3. 依赖注入：app使用哪个adapters
+```
+  hourRepository := adapters.NewFirestoreHourRepository(firestoreClient, hourFactory)
+  service := app.NewHourService(datesRepository, hourRepository)
+main.go中通过组合的方式将adapters注入到app中，将所有层连接到一起。
+```
+
+4. 什么是Clean Architecture
+```
+	依赖规则（The Dependency Rule）:源码级别的依赖只能指向内层（更高层次的策略），不能指向外层（实现细节）。
+
+	优势：
+	1. 保护业务逻辑不受基础设施变化的影响
+	2. 可替换性
+	3. 可测试性
+```
 
 ### Running locally
 
