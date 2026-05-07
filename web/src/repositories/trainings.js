@@ -1,10 +1,10 @@
 import TrainingsDefaultApi from './clients/trainings/src/api/DefaultApi'
-import {ApiClient as TrainingsApiClient} from './clients/trainings/src'
+import { ApiClient as TrainingsApiClient } from './clients/trainings/src'
 
 import TrainerDefaultApi from './clients/trainer/src/api/DefaultApi'
-import {ApiClient as TrainerApiClient} from './clients/trainer/src'
+import { ApiClient as TrainerApiClient } from './clients/trainer/src'
 import HourUpdate from "./clients/trainer/src/model/HourUpdate";
-import {formatDate} from "../date";
+import { formatDate } from "../date";
 import PostTraining from "./clients/trainings/src/model/PostTraining";
 
 export let trainingsClient = new TrainingsApiClient()
@@ -93,7 +93,7 @@ export function getPeriods() {
         let to = new Date()
         to.setDate(to.getDate() + (week * 8) + 7)
 
-        periods.push({'from': formatDate(from), 'to': formatDate(to)})
+        periods.push({ 'from': formatDate(from), 'to': formatDate(to) })
     }
 
     return periods
@@ -111,16 +111,21 @@ export function scheduleTraining(notes, date, hour, successCallback, errorCallba
     })
 }
 
-export function rescheduleTraining(trainingUUID, notes, date, hour, successCallback, errorCallback) {
+export function rescheduleTraining(trainingUUID, notes, date, hour, isPropose, successCallback, errorCallback) {
     let req = new PostTraining(notes, new Date(date + 'T' + hour));
 
-    trainingsAPI.rescheduleTraining(trainingUUID, req, (error) => {
+    let callback = (error) => {
         if (error) {
             errorCallback(error)
         } else {
             successCallback()
         }
-    })
+    }
+    if (isPropose) {
+        trainingsAPI.requestRescheduleTraining(trainingUUID, req, callback)
+    } else {
+        trainingsAPI.rescheduleTraining(trainingUUID, req, callback)
+    }
 }
 
 export function cancelTraining(uuid, successCallback, errorCallback) {

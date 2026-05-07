@@ -17,7 +17,8 @@ No application is perfect from the beginning. With over a dozen coming articles,
 7. [**Repository pattern: painless way to simplify your Go service logic**](https://threedots.tech/post/repository-pattern-in-go/?utm_source=github.com)
 8. [**4 practical principles of high-quality database integration tests in Go**](https://threedots.tech/post/database-integration-testing/?utm_source=github.com)
 9. [**Introducing Clean Architecture by refactoring a Go project**](https://threedots.tech/post/introducing-clean-architecture/?utm_source=github.com)
-10. *More articles are on the way!*
+10. [**Introducing basic CQRS by refactoring**](https://threedots.tech/post/basic-cqrs-in-go/?utm_source=github.com) 
+11. *More articles are on the way!*
 
 ### Directories
 
@@ -130,6 +131,49 @@ main.go中通过组合的方式将adapters注入到app中，将所有层连接�
 	2. 可替换性
 	3. 可测试性
 ```
+
+#### v6：with CQRS
+1. 以training为例
+```
+  app内添加一层command，分离写和读操作，数据库托管到command层。
+
+  command/ 目录 — 写操作（改变系统状态）：                                                                                 
+  ┌────────────────────────────────┬──────────────────┐
+  │              文件              │       内容        │
+  ├────────────────────────────────┼──────────────────┤            
+  │ approve_training_reschedule.go │ 批准改期请求       │
+  ├────────────────────────────────┼──────────────────┤
+  │ cancel_training.go             │ 取消训练          │   
+  ├────────────────────────────────┼──────────────────┤
+  │ reject_training_reschedule.go  │ 拒绝改期请求       │
+  ├────────────────────────────────┼──────────────────┤ 
+  │ request_training_reschedule.go │ 请求改期          │
+  ├────────────────────────────────┼──────────────────┤
+  │ reschedule_training.go         │ 执行改期          │          
+  ├────────────────────────────────┼──────────────────┤
+  │ schedule_training.go           │ 安排训练          │
+  ├────────────────────────────────┼──────────────────┤
+  │ service.go                     │ 外部服务接口定义    │
+  └────────────────────────────────┴──────────────────┘
+            
+  query/ 目录 — 读操作（不改变状态）：              
+
+  ┌───────────────────────┬─────────────────────┐
+  │         文件          │        内容         │  
+  ├───────────────────────┼─────────────────────┤
+  │ all_trainings.go      │ 查询所有训练        │               
+  ├───────────────────────┼─────────────────────┤   
+  │ trainings_for_user.go │ 查询用户训练        │
+  ├───────────────────────┼─────────────────────┤
+  │ type.go               │ 查询返回的 DTO 定义 │   
+  └───────────────────────┴─────────────────────┘
+                                                                  
+  每个文件的命名规则是 动词 + 名词（如 cancel_training），对应一个具体的用例（Use Case）。
+```
+2. CQRS
+  - Command（命令）：改变系统状态，不返回业务数据（Handle 返回 error）
+  - Query（查询）：只读取数据，不产生副作用（Handle 返回 []Training, error）
+  - 读写模型分离：Command 依赖 training.Repository（领域仓储），Query 依赖 AllTrainingsReadModel（只读模型接口）
 
 ### Running locally
 

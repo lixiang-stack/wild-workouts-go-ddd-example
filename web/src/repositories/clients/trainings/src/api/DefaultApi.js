@@ -24,256 +24,301 @@ import Trainings from '../model/Trainings';
 */
 export default class DefaultApi {
 
-    /**
-    * Constructs a new DefaultApi. 
-    * @alias module:api/DefaultApi
-    * @class
-    * @param {module:ApiClient} [apiClient] Optional API client implementation to use,
-    * default to {@link module:ApiClient#instance} if unspecified.
-    */
-    constructor(apiClient) {
-        this.apiClient = apiClient || ApiClient.instance;
+  /**
+  * Constructs a new DefaultApi. 
+  * @alias module:api/DefaultApi
+  * @class
+  * @param {module:ApiClient} [apiClient] Optional API client implementation to use,
+  * default to {@link module:ApiClient#instance} if unspecified.
+  */
+  constructor(apiClient) {
+    this.apiClient = apiClient || ApiClient.instance;
+  }
+
+
+  /**
+   * Callback function to receive the result of the approveRescheduleTraining operation.
+   * @callback module:api/DefaultApi~approveRescheduleTrainingCallback
+   * @param {String} error Error message, if any.
+   * @param data This operation does not return a value.
+   * @param {String} response The complete HTTP response.
+   */
+
+  /**
+   * @param {String} trainingUUID todo
+   * @param {module:api/DefaultApi~approveRescheduleTrainingCallback} callback The callback function, accepting three arguments: error, data, response
+   */
+  approveRescheduleTraining(trainingUUID, callback) {
+    let postBody = null;
+    // verify the required parameter 'trainingUUID' is set
+    if (trainingUUID === undefined || trainingUUID === null) {
+      throw new Error("Missing the required parameter 'trainingUUID' when calling approveRescheduleTraining");
     }
 
+    let pathParams = {
+      'trainingUUID': trainingUUID
+    };
+    let queryParams = {
+    };
+    let headerParams = {
+    };
+    let formParams = {
+    };
 
-    /**
-     * Callback function to receive the result of the approveRescheduleTraining operation.
-     * @callback module:api/DefaultApi~approveRescheduleTrainingCallback
-     * @param {String} error Error message, if any.
-     * @param data This operation does not return a value.
-     * @param {String} response The complete HTTP response.
-     */
+    let authNames = ['bearerAuth'];
+    let contentTypes = [];
+    let accepts = ['application/json'];
+    let returnType = null;
+    return this.apiClient.callApi(
+      '/trainings/{trainingUUID}/approve-reschedule', 'PUT',
+      pathParams, queryParams, headerParams, formParams, postBody,
+      authNames, contentTypes, accepts, returnType, null, callback
+    );
+  }
 
-    /**
-     * @param {String} trainingUUID todo
-     * @param {module:api/DefaultApi~approveRescheduleTrainingCallback} callback The callback function, accepting three arguments: error, data, response
-     */
-    approveRescheduleTraining(trainingUUID, callback) {
-      let postBody = null;
-      // verify the required parameter 'trainingUUID' is set
-      if (trainingUUID === undefined || trainingUUID === null) {
-        throw new Error("Missing the required parameter 'trainingUUID' when calling approveRescheduleTraining");
-      }
+  /**
+   * Callback function to receive the result of the cancelTraining operation.
+   * @callback module:api/DefaultApi~cancelTrainingCallback
+   * @param {String} error Error message, if any.
+   * @param data This operation does not return a value.
+   * @param {String} response The complete HTTP response.
+   */
 
-      let pathParams = {
-        'trainingUUID': trainingUUID
-      };
-      let queryParams = {
-      };
-      let headerParams = {
-      };
-      let formParams = {
-      };
-
-      let authNames = ['bearerAuth'];
-      let contentTypes = [];
-      let accepts = ['application/json'];
-      let returnType = null;
-      return this.apiClient.callApi(
-        '/trainings/{trainingUUID}/approve-reschedule', 'PUT',
-        pathParams, queryParams, headerParams, formParams, postBody,
-        authNames, contentTypes, accepts, returnType, null, callback
-      );
+  /**
+   * @param {String} trainingUUID todo
+   * @param {module:api/DefaultApi~cancelTrainingCallback} callback The callback function, accepting three arguments: error, data, response
+   */
+  cancelTraining(trainingUUID, callback) {
+    let postBody = null;
+    // verify the required parameter 'trainingUUID' is set
+    if (trainingUUID === undefined || trainingUUID === null) {
+      throw new Error("Missing the required parameter 'trainingUUID' when calling cancelTraining");
     }
 
-    /**
-     * Callback function to receive the result of the cancelTraining operation.
-     * @callback module:api/DefaultApi~cancelTrainingCallback
-     * @param {String} error Error message, if any.
-     * @param data This operation does not return a value.
-     * @param {String} response The complete HTTP response.
-     */
+    let pathParams = {
+      'trainingUUID': trainingUUID
+    };
+    let queryParams = {
+    };
+    let headerParams = {
+    };
+    let formParams = {
+    };
 
-    /**
-     * @param {String} trainingUUID todo
-     * @param {module:api/DefaultApi~cancelTrainingCallback} callback The callback function, accepting three arguments: error, data, response
-     */
-    cancelTraining(trainingUUID, callback) {
-      let postBody = null;
-      // verify the required parameter 'trainingUUID' is set
-      if (trainingUUID === undefined || trainingUUID === null) {
-        throw new Error("Missing the required parameter 'trainingUUID' when calling cancelTraining");
-      }
+    let authNames = ['bearerAuth'];
+    let contentTypes = [];
+    let accepts = ['application/json'];
+    let returnType = null;
+    return this.apiClient.callApi(
+      '/trainings/{trainingUUID}', 'DELETE',
+      pathParams, queryParams, headerParams, formParams, postBody,
+      authNames, contentTypes, accepts, returnType, null, callback
+    );
+  }
 
-      let pathParams = {
-        'trainingUUID': trainingUUID
-      };
-      let queryParams = {
-      };
-      let headerParams = {
-      };
-      let formParams = {
-      };
+  /**
+   * Callback function to receive the result of the createTraining operation.
+   * @callback module:api/DefaultApi~createTrainingCallback
+   * @param {String} error Error message, if any.
+   * @param data This operation does not return a value.
+   * @param {String} response The complete HTTP response.
+   */
 
-      let authNames = ['bearerAuth'];
-      let contentTypes = [];
-      let accepts = ['application/json'];
-      let returnType = null;
-      return this.apiClient.callApi(
-        '/trainings/{trainingUUID}', 'DELETE',
-        pathParams, queryParams, headerParams, formParams, postBody,
-        authNames, contentTypes, accepts, returnType, null, callback
-      );
+  /**
+   * @param {module:model/PostTraining} postTraining todo
+   * @param {module:api/DefaultApi~createTrainingCallback} callback The callback function, accepting three arguments: error, data, response
+   */
+  createTraining(postTraining, callback) {
+    let postBody = postTraining;
+    // verify the required parameter 'postTraining' is set
+    if (postTraining === undefined || postTraining === null) {
+      throw new Error("Missing the required parameter 'postTraining' when calling createTraining");
     }
 
-    /**
-     * Callback function to receive the result of the createTraining operation.
-     * @callback module:api/DefaultApi~createTrainingCallback
-     * @param {String} error Error message, if any.
-     * @param data This operation does not return a value.
-     * @param {String} response The complete HTTP response.
-     */
+    let pathParams = {
+    };
+    let queryParams = {
+    };
+    let headerParams = {
+    };
+    let formParams = {
+    };
 
-    /**
-     * @param {module:model/PostTraining} postTraining todo
-     * @param {module:api/DefaultApi~createTrainingCallback} callback The callback function, accepting three arguments: error, data, response
-     */
-    createTraining(postTraining, callback) {
-      let postBody = postTraining;
-      // verify the required parameter 'postTraining' is set
-      if (postTraining === undefined || postTraining === null) {
-        throw new Error("Missing the required parameter 'postTraining' when calling createTraining");
-      }
+    let authNames = ['bearerAuth'];
+    let contentTypes = ['application/json'];
+    let accepts = ['application/json'];
+    let returnType = null;
+    return this.apiClient.callApi(
+      '/trainings', 'POST',
+      pathParams, queryParams, headerParams, formParams, postBody,
+      authNames, contentTypes, accepts, returnType, null, callback
+    );
+  }
 
-      let pathParams = {
-      };
-      let queryParams = {
-      };
-      let headerParams = {
-      };
-      let formParams = {
-      };
+  /**
+   * Callback function to receive the result of the getTrainings operation.
+   * @callback module:api/DefaultApi~getTrainingsCallback
+   * @param {String} error Error message, if any.
+   * @param {module:model/Trainings} data The data returned by the service call.
+   * @param {String} response The complete HTTP response.
+   */
 
-      let authNames = ['bearerAuth'];
-      let contentTypes = ['application/json'];
-      let accepts = ['application/json'];
-      let returnType = null;
-      return this.apiClient.callApi(
-        '/trainings', 'POST',
-        pathParams, queryParams, headerParams, formParams, postBody,
-        authNames, contentTypes, accepts, returnType, null, callback
-      );
+  /**
+   * @param {module:api/DefaultApi~getTrainingsCallback} callback The callback function, accepting three arguments: error, data, response
+   * data is of type: {@link module:model/Trainings}
+   */
+  getTrainings(callback) {
+    let postBody = null;
+
+    let pathParams = {
+    };
+    let queryParams = {
+    };
+    let headerParams = {
+    };
+    let formParams = {
+    };
+
+    let authNames = ['bearerAuth'];
+    let contentTypes = [];
+    let accepts = ['application/json'];
+    let returnType = Trainings;
+    return this.apiClient.callApi(
+      '/trainings', 'GET',
+      pathParams, queryParams, headerParams, formParams, postBody,
+      authNames, contentTypes, accepts, returnType, null, callback
+    );
+  }
+
+  /**
+   * Callback function to receive the result of the rejectRescheduleTraining operation.
+   * @callback module:api/DefaultApi~rejectRescheduleTrainingCallback
+   * @param {String} error Error message, if any.
+   * @param data This operation does not return a value.
+   * @param {String} response The complete HTTP response.
+   */
+
+  /**
+   * @param {String} trainingUUID todo
+   * @param {module:api/DefaultApi~rejectRescheduleTrainingCallback} callback The callback function, accepting three arguments: error, data, response
+   */
+  rejectRescheduleTraining(trainingUUID, callback) {
+    let postBody = null;
+    // verify the required parameter 'trainingUUID' is set
+    if (trainingUUID === undefined || trainingUUID === null) {
+      throw new Error("Missing the required parameter 'trainingUUID' when calling rejectRescheduleTraining");
     }
 
-    /**
-     * Callback function to receive the result of the getTrainings operation.
-     * @callback module:api/DefaultApi~getTrainingsCallback
-     * @param {String} error Error message, if any.
-     * @param {module:model/Trainings} data The data returned by the service call.
-     * @param {String} response The complete HTTP response.
-     */
+    let pathParams = {
+      'trainingUUID': trainingUUID
+    };
+    let queryParams = {
+    };
+    let headerParams = {
+    };
+    let formParams = {
+    };
 
-    /**
-     * @param {module:api/DefaultApi~getTrainingsCallback} callback The callback function, accepting three arguments: error, data, response
-     * data is of type: {@link module:model/Trainings}
-     */
-    getTrainings(callback) {
-      let postBody = null;
+    let authNames = ['bearerAuth'];
+    let contentTypes = [];
+    let accepts = ['application/json'];
+    let returnType = null;
+    return this.apiClient.callApi(
+      '/trainings/{trainingUUID}/reject-reschedule', 'PUT',
+      pathParams, queryParams, headerParams, formParams, postBody,
+      authNames, contentTypes, accepts, returnType, null, callback
+    );
+  }
 
-      let pathParams = {
-      };
-      let queryParams = {
-      };
-      let headerParams = {
-      };
-      let formParams = {
-      };
+  /**
+   * Callback function to receive the result of the requestRescheduleTraining operation.
+   * @callback module:api/DefaultApi~requestRescheduleTrainingCallback
+   * @param {String} error Error message, if any.
+   * @param data This operation does not return a value.
+   * @param {String} response The complete HTTP response.
+   */
 
-      let authNames = ['bearerAuth'];
-      let contentTypes = [];
-      let accepts = ['application/json'];
-      let returnType = Trainings;
-      return this.apiClient.callApi(
-        '/trainings', 'GET',
-        pathParams, queryParams, headerParams, formParams, postBody,
-        authNames, contentTypes, accepts, returnType, null, callback
-      );
+  /**
+   * @param {String} trainingUUID todo
+   * @param {module:model/PostTraining} postTraining todo
+   * @param {module:api/DefaultApi~requestRescheduleTrainingCallback} callback The callback function, accepting three arguments: error, data, response
+   */
+  requestRescheduleTraining(trainingUUID, postTraining, callback) {
+    let postBody = postTraining;
+    // verify the required parameter 'trainingUUID' is set
+    if (trainingUUID === undefined || trainingUUID === null) {
+      throw new Error("Missing the required parameter 'trainingUUID' when calling requestRescheduleTraining");
+    }
+    // verify the required parameter 'postTraining' is set
+    if (postTraining === undefined || postTraining === null) {
+      throw new Error("Missing the required parameter 'postTraining' when calling requestRescheduleTraining");
     }
 
-    /**
-     * Callback function to receive the result of the rejectRescheduleTraining operation.
-     * @callback module:api/DefaultApi~rejectRescheduleTrainingCallback
-     * @param {String} error Error message, if any.
-     * @param data This operation does not return a value.
-     * @param {String} response The complete HTTP response.
-     */
+    let pathParams = {
+      'trainingUUID': trainingUUID
+    };
+    let queryParams = {
+    };
+    let headerParams = {
+    };
+    let formParams = {
+    };
 
-    /**
-     * @param {String} trainingUUID todo
-     * @param {module:api/DefaultApi~rejectRescheduleTrainingCallback} callback The callback function, accepting three arguments: error, data, response
-     */
-    rejectRescheduleTraining(trainingUUID, callback) {
-      let postBody = null;
-      // verify the required parameter 'trainingUUID' is set
-      if (trainingUUID === undefined || trainingUUID === null) {
-        throw new Error("Missing the required parameter 'trainingUUID' when calling rejectRescheduleTraining");
-      }
+    let authNames = ['bearerAuth'];
+    let contentTypes = ['application/json'];
+    let accepts = ['application/json'];
+    let returnType = null;
+    return this.apiClient.callApi(
+      '/trainings/{trainingUUID}/request-reschedule', 'PUT',
+      pathParams, queryParams, headerParams, formParams, postBody,
+      authNames, contentTypes, accepts, returnType, null, callback
+    );
+  }
 
-      let pathParams = {
-        'trainingUUID': trainingUUID
-      };
-      let queryParams = {
-      };
-      let headerParams = {
-      };
-      let formParams = {
-      };
+  /**
+   * Callback function to receive the result of the rescheduleTraining operation.
+   * @callback module:api/DefaultApi~rescheduleTrainingCallback
+   * @param {String} error Error message, if any.
+   * @param data This operation does not return a value.
+   * @param {String} response The complete HTTP response.
+   */
 
-      let authNames = ['bearerAuth'];
-      let contentTypes = [];
-      let accepts = ['application/json'];
-      let returnType = null;
-      return this.apiClient.callApi(
-        '/trainings/{trainingUUID}/reject-reschedule', 'PUT',
-        pathParams, queryParams, headerParams, formParams, postBody,
-        authNames, contentTypes, accepts, returnType, null, callback
-      );
+  /**
+   * @param {String} trainingUUID todo
+   * @param {module:model/PostTraining} postTraining todo
+   * @param {module:api/DefaultApi~rescheduleTrainingCallback} callback The callback function, accepting three arguments: error, data, response
+   */
+  rescheduleTraining(trainingUUID, postTraining, callback) {
+    let postBody = postTraining;
+    // verify the required parameter 'trainingUUID' is set
+    if (trainingUUID === undefined || trainingUUID === null) {
+      throw new Error("Missing the required parameter 'trainingUUID' when calling rescheduleTraining");
+    }
+    // verify the required parameter 'postTraining' is set
+    if (postTraining === undefined || postTraining === null) {
+      throw new Error("Missing the required parameter 'postTraining' when calling rescheduleTraining");
     }
 
-    /**
-     * Callback function to receive the result of the rescheduleTraining operation.
-     * @callback module:api/DefaultApi~rescheduleTrainingCallback
-     * @param {String} error Error message, if any.
-     * @param data This operation does not return a value.
-     * @param {String} response The complete HTTP response.
-     */
+    let pathParams = {
+      'trainingUUID': trainingUUID
+    };
+    let queryParams = {
+    };
+    let headerParams = {
+    };
+    let formParams = {
+    };
 
-    /**
-     * @param {String} trainingUUID todo
-     * @param {module:model/PostTraining} postTraining todo
-     * @param {module:api/DefaultApi~rescheduleTrainingCallback} callback The callback function, accepting three arguments: error, data, response
-     */
-    rescheduleTraining(trainingUUID, postTraining, callback) {
-      let postBody = postTraining;
-      // verify the required parameter 'trainingUUID' is set
-      if (trainingUUID === undefined || trainingUUID === null) {
-        throw new Error("Missing the required parameter 'trainingUUID' when calling rescheduleTraining");
-      }
-      // verify the required parameter 'postTraining' is set
-      if (postTraining === undefined || postTraining === null) {
-        throw new Error("Missing the required parameter 'postTraining' when calling rescheduleTraining");
-      }
-
-      let pathParams = {
-        'trainingUUID': trainingUUID
-      };
-      let queryParams = {
-      };
-      let headerParams = {
-      };
-      let formParams = {
-      };
-
-      let authNames = ['bearerAuth'];
-      let contentTypes = ['application/json'];
-      let accepts = ['application/json'];
-      let returnType = null;
-      return this.apiClient.callApi(
-        '/trainings/{trainingUUID}/reschedule', 'PUT',
-        pathParams, queryParams, headerParams, formParams, postBody,
-        authNames, contentTypes, accepts, returnType, null, callback
-      );
-    }
+    let authNames = ['bearerAuth'];
+    let contentTypes = ['application/json'];
+    let accepts = ['application/json'];
+    let returnType = null;
+    return this.apiClient.callApi(
+      '/trainings/{trainingUUID}/reschedule', 'PUT',
+      pathParams, queryParams, headerParams, formParams, postBody,
+      authNames, contentTypes, accepts, returnType, null, callback
+    );
+  }
 
 
 }
