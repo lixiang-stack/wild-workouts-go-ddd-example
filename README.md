@@ -18,7 +18,8 @@ No application is perfect from the beginning. With over a dozen coming articles,
 8. [**4 practical principles of high-quality database integration tests in Go**](https://threedots.tech/post/database-integration-testing/?utm_source=github.com)
 9. [**Introducing Clean Architecture by refactoring a Go project**](https://threedots.tech/post/introducing-clean-architecture/?utm_source=github.com)
 10. [**Introducing basic CQRS by refactoring**](https://threedots.tech/post/basic-cqrs-in-go/?utm_source=github.com) 
-11. *More articles are on the way!*
+11. [**Combining DDD, CQRS, and Clean Architecture**](https://threedots.tech/post/ddd-cqrs-clean-architecture-combined/?utm_source=github.com)
+12. *More articles are on the way!*
 
 ### Directories
 
@@ -174,6 +175,16 @@ main.go中通过组合的方式将adapters注入到app中，将所有层连接�
   - Command（命令）：改变系统状态，不返回业务数据（Handle 返回 error）
   - Query（查询）：只读取数据，不产生副作用（Handle 返回 []Training, error）
   - 读写模型分离：Command 依赖 training.Repository（领域仓储），Query 依赖 AllTrainingsReadModel（只读模型接口）
+
+#### v7：再看DDD
+```
+1. always keep a valid state in the memory.
+2. build our domain with methods oriented on behaviours. Not on data. 
+3. application layer can be responsible only for the orchestration of the flow. There is no domain logic there. 
+4. hide the entire business complexity in the domain layer. 
+5. If you start to see some if’s related to logic in your application layer, you should think about how to move it to the domain layer. 
+6. domain logic is fairly stable after initial development and can live unchanged for a long time.
+```
 
 ### Running locally
 

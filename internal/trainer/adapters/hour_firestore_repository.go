@@ -34,7 +34,7 @@ func NewFirestoreHourRepository(firestoreClient *firestore.Client, hourFactory h
 	}
 }
 
-func (f FirestoreHourRepository) GetOrCreateHour(ctx context.Context, time time.Time) (*hour.Hour, error) {
+func (f FirestoreHourRepository) GetHour(ctx context.Context, time time.Time) (*hour.Hour, error) {
 	date, err := f.getDateDTO(
 		// getDateDTO should be used both for transactional and non transactional query,
 		// the best way for that is to use closure
